@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CheckRizz – Chat</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --accent:#8fceff;
+  --card:#171A22;
+  --header:#1C1F2A;
+  --bot:#1F2330;
+  --text:#E5E7EB;
+  --muted:#9CA3AF;
+  --shadow:0 22px 50px rgba(0,0,0,.35);
+  --radius:18px;
+}
+*{box-sizing:border-box;font-family:Inter}
+body{
+  margin:0;
+  min-height:100vh;
+  background:linear-gradient(180deg,#8fceff 0%,#bfe6ff 100%);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:28px;
+  color:var(--text);
+}
+.app{
+  width:100%;
+  max-width:420px;
+  background:var(--card);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  overflow:hidden;
+}
+.header{background:var(--header);padding:14px 16px}
+.profile{display:flex;gap:12px;align-items:center}
+.avatar{width:40px;height:40px;border-radius:50%}
+.name{font-weight:600}
+.status{font-size:12px;color:var(--muted)}
+.chat{padding:18px;display:flex;flex-direction:column;gap:14px;min-height:300px}
+.bubble{max-width:85%;padding:12px 15px;border-radius:16px;font-size:14px}
+.bot{background:var(--bot);align-self:flex-start}
+.user{background:var(--accent);color:#0F1117;align-self:flex-end}
+.options{padding:16px;display:flex;gap:10px}
+#userInput{flex:1;padding:13px;border-radius:14px;border:none;background:#0F1117;color:var(--text)}
+button{background:var(--bot);border:none;color:var(--text);padding:13px;border-radius:14px;cursor:pointer}
+.result{display:none;padding:22px;text-align:center}
+.score{font-size:64px;font-weight:800;color:var(--accent)}
+#breakdown{text-align:left;margin-top:18px}
+.bar{margin-bottom:10px}
+.bar-track{background:#0F1117;border-radius:10px;height:8px}
+.bar-fill{background:var(--accent);height:100%}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <div class="header">
+    <div class="profile">
+      <img id="avatar" class="avatar">
+      <div>
+        <div class="name" id="name"></div>
+        <div class="status">online</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chat" id="chat"></div>
+
+  <div class="options" id="inputBar">
+    <input id="userInput" placeholder="Type your reply..." />
+    <button onclick="sendMessage()">Send</button>
+  </div>
+
+  <div class="result" id="result">
+    <div class="score" id="score">0</div>
+    <p id="comment" class="status"></p>
+    <div id="breakdown"></div>
+    <button onclick="restart()">Change Evaluator</button>
+  </div>
+
+</div>
+
+<script>
+const evaluator = JSON.parse(localStorage.getItem("evaluator"));
+if(!evaluator) location.href="select.html";
+
+document.getElementById("name").textContent = evaluator.name;
+document.getElementById("avatar").src = evaluator.img;
+
+const SYSTEM_PROMPTS = {
+  Ava: "You are Ava. Confident, flirty, selective. Ask natural questions.",
+  Leo: "You are Leo. Chill, minimal, honest.",
+  Maya: "You are Maya. Direct, emotionally sharp.",
+  Noah: "You are Noah. Calm, reflective."
+};
+
+let conversation = [{
+  role:"system",
+  content: SYSTEM_PROMPTS[evaluator.name]
+}];
+
+let userCount = 0;
+let chatEnded = false;
+const MAX_MESSAGES = 10;
+
+const chat = document.getElementById("chat");
+const input = document.getElementById("userInput");
+
+function msg(text,type){
+  const d=document.createElement("div");
+  d.className="bubble "+type;
+  d.textContent=text;
+  chat.appendChild(d);
+  chat.scrollTop=chat.scrollHeight;
+}
+
+async function sendMessage(){
+  if(chatEnded || !input.value.trim()) return;
+
+  msg(input.value,"user");
+  conversation.push({role:"user",content:input.value});
+  input.value="";
+  userCount++;
+
+  try{
+    if(userCount >= MAX_MESSAGES){
+      await endChat();
+      return;
+    }
+
+    const res = await fetch("/chat",{
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body:JSON.stringify({messages:conversation})
+    });
+
+    const payload = await res.json();
+    if(!payload.ok) throw new Error(payload.error);
+
+    msg(payload.reply,"bot");
+    conversation.push({role:"assistant",content:payload.reply});
+
+  }catch{
+    msg("Something went wrong. Try again.","bot");
+  }
+}
+
+async function endChat(){
+  chatEnded = true;
+
+  conversation.push({
+    role:"system",
+    content:`Evaluate rizz and return ONLY JSON:
+{
+ "score": number,
+ "comment": string,
+ "breakdown":{
+   "confidence":number,
+   "humor":number,
+   "flow":number,
+   "emotional_intelligence":number,
+   "authenticity":number
+ }
+}`
+  });
+
+  try{
+    const res = await fetch("/chat",{
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body:JSON.stringify({messages:conversation})
+    });
+
+    const payload = await res.json();
+    if(!payload.ok) throw new Error(payload.error);
+
+    const result = JSON.parse(payload.reply);
+
+    document.getElementById("score").textContent = result.score;
+    document.getElementById("comment").textContent = result.comment;
+
+    const b=document.getElementById("breakdown");
+    b.innerHTML="";
+    Object.entries(result.breakdown).forEach(([k,v])=>{
+      b.innerHTML+=`
+        <div class="bar">
+          ${k}: ${v}
+          <div class="bar-track">
+            <div class="bar-fill" style="width:${v*10}%"></div>
+          </div>
+        </div>`;
+    });
+
+    document.getElementById("result").style.display="block";
+    document.getElementById("inputBar").style.display="none";
+
+  }catch{
+    msg("Scoring failed. Try again.","bot");
+  }
+}
+
+function restart(){
+  localStorage.removeItem("evaluator");
+  location.href="select.html";
+}
+
+msg(`Hey, I’m ${evaluator.name}. Let’s talk.`,"bot");
+</script>
+
+</body>
+</html>
