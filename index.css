@@ -1,0 +1,129 @@
+/* ================= RESET ================= */
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  height: 100%;
+  font-family: 'Inter', sans-serif;
+  overflow: hidden; /* ❌ NO SCROLL */
+}
+
+/* ================= COLORS ================= */
+:root {
+  --bg-dark: #050507;
+  --text-main: #f2f2f7;
+  --text-muted: #a0a0b3;
+  --pink: #ff5ca8;
+  --purple: #d946ef;
+}
+
+/* ================= BACKGROUND ================= */
+
+.hero-bg {
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 30%, rgba(255,92,168,0.28), transparent 45%),
+    radial-gradient(circle at 20% 80%, rgba(168,85,247,0.18), transparent 50%),
+    linear-gradient(135deg, #050507, #0a0c10 60%);
+  z-index: -1;
+}
+
+/* ================= HERO CENTER ================= */
+
+.hero-wrapper {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-content {
+  text-align: center;
+  max-width: 720px;
+}
+
+/* ================= TEXT ================= */
+
+.hero-label {
+  font-size: 0.75rem;
+  letter-spacing: 0.25em;
+  color: var(--pink);
+  margin-bottom: 18px;
+}
+
+.hero-title {
+  font-size: 4.6rem;
+  font-weight: 900;
+  margin: 0;
+  color: var(--text-main);
+}
+
+.highlight {
+  color: var(--pink);
+  text-shadow:
+    0 0 25px rgba(255,92,168,0.7),
+    0 0 55px rgba(255,92,168,0.45);
+}
+
+.hero-subtitle {
+  margin-top: 14px;
+  font-size: 1.25rem;
+  color: var(--text-muted);
+}
+
+/* ================= BUTTON ================= */
+
+.hero-button {
+  display: inline-block;
+  margin-top: 40px;
+  padding: 14px 38px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--pink), var(--purple));
+  color: #000;
+  font-weight: 800;
+  text-decoration: none;
+  box-shadow: 0 0 45px rgba(255,92,168,0.65);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.hero-button:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 0 65px rgba(255,92,168,0.9);
+}
+
+/* ================= FOOTER ================= */
+
+.hero-footer {
+  margin-top: 26px;
+  font-size: 0.85rem;
+  color: #8f8fa3;
+}
+
+/* ================= FLOATING CHAT BUBBLES ================= */
+
+.chat-float {
+  position: absolute;
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(6px);
+  color: #d6d6e0;
+  white-space: nowrap;
+  animation: floaty 6s ease-in-out infinite;
+}
+
+.chat-float.left { left: 8%; }
+.chat-float.right { right: 8%; }
+
+.chat-float.top { top: 18%; }
+.chat-float.mid { top: 45%; }
+.chat-float.bottom { bottom: 18%; }
+
+@keyframes floaty {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-14px); }
+}
