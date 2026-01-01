@@ -97,7 +97,7 @@ function startTimer(buttons) {
 
   const fill = document.createElement("div");
   fill.className = "timer-fill";
-  fill.style.animationDuration = "10s";
+  fill.style.animationDuration = "15s";
 
   bar.appendChild(fill);
   choicesEl.prepend(bar);
@@ -107,8 +107,9 @@ function startTimer(buttons) {
   timerInterval = setInterval(() => {
     seconds++;
     buttons.forEach(btn => {
-      if (seconds >= 6) btn.classList.add("fading");
-      if (seconds >= 9) btn.classList.add("final");
+      if (seconds >= 10) btn.classList.add("fading");
+      if (seconds >= 13) btn.classList.add("final");
+
     });
   }, 1000);
 
@@ -116,7 +117,8 @@ function startTimer(buttons) {
     clearTimers();
     addMessage("you hesitate.");
     buttons[Math.floor(Math.random() * buttons.length)].click();
-  }, 10000);
+  }, 15000);
+
 }
 
 /* -------------------- CHOICES -------------------- */
@@ -289,3 +291,4 @@ function resetEntireGame() {
 
 /* -------------------- START -------------------- */
 startScenario();
+
